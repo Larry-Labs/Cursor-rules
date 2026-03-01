@@ -40,9 +40,10 @@ alwaysApply: true
 
 # Git 提交规范
 
-- 使用 Conventional Commit 格式：`type: description`
+- 使用 Conventional Commit 格式：`type(scope): description`
 - 常用 type：`feat`、`fix`、`refactor`、`docs`、`test`、`chore`
-- commit message 用中文描述，type 保留英文
+- scope 可选，用于标注影响范围（如 `feat(auth): add OAuth2 login`）
+- commit message 全部使用英文，简洁明了
 - 不自动 push，除非用户明确要求
 
 # Python 环境
