@@ -13,11 +13,10 @@
 
 ## 导入方式
 
-在 Cursor 设置中通过 GitHub 地址导入：
-
-```
-https://github.com/Larry-Labs/Cursor-rules
-```
+1. 打开 Cursor 设置：**Settings** → **Rules, Skills, Subagent** → **Rules**
+2. 点击 **+ New**
+3. 选择 **Add from GitHub**
+4. 输入地址：`https://github.com/Larry-Labs/Cursor-rules`
 
 ## 自定义
 
