@@ -8,8 +8,8 @@ alwaysApply: true
 处理复杂任务时，按阶段推进，不跳步：
 
 1. **Research（研究）** — 先阅读相关代码和上下文，理解现有架构、依赖和约束。仅输出观察和问题，不给建议。
-2. **Innovate（构思）** — 列出可行方案，分析各方案的优劣和取舍。不写具体代码。
-3. **Plan（规划）** — 输出明确的实施步骤清单，每步是原子操作。必须调用 AskQuestion 工具让用户确认方案后再动手。
+2. **Innovate（构思）** — 列出所有可行方案，一次性给出：方案总数、每种方案的实施难度与适用范围、推荐方案及推荐理由。不写具体代码。
+3. **Plan（规划）** — 输出明确的实施步骤清单，每步是原子操作。通过 AskQuestion 工具（如可用）或直接提问让用户确认方案后再动手。
 4. **Execute（执行）** — 严格按确认的计划实施，不做计划外的修改或"顺手优化"。
 5. **Review（审查）** — 对照计划逐项验证实现；发现错误代码、冗余代码、未使用的导入或死代码时，提醒用户并建议清理。
 
@@ -20,18 +20,18 @@ alwaysApply: true
 发现代码问题时：
 
 1. **说明推理** — 阐述问题和推理依据。
-2. **给出方案** — 列出可行的修复方案。
-3. **推荐方案** — 指出推荐方案及理由。
-4. **征求意见** — 必须调用 AskQuestion 工具询问用户选择，确认后再修复。
+2. **给出方案** — 一次性列出所有可行方案，说明每种方案的实施难度与适用范围。
+3. **推荐方案** — 明确指出推荐方案及推荐理由。
+4. **征求意见** — 通过 AskQuestion 工具（如可用）或直接提问询问用户选择，确认后再修复。
 
 # 编码质量
 
-> 如果任务要求模仿已有代码的风格，可沿用原有写法，但须调用 AskQuestion 工具提醒用户存在的可改进之处，由用户决定是否优化。
+> 如果任务要求模仿已有代码的风格，可沿用原有写法，但须提醒用户存在的可改进之处，由用户决定是否优化。
 - **注释克制** — 只注释非直觉的业务逻辑、边界条件或设计取舍，不写显而易见的注释。
 - **命名清晰** — 变量、函数、类名应自解释，避免无意义缩写。
 - **错误处理** — 不吞异常、不写空 catch，异常附带上下文信息。
 - **类型安全** — 避免 `any`（TS）或忽略类型提示（Python），优先强类型。
-- **单一职责** — 一个函数只做一件事，超过 50 行考虑拆分。
+- **单一职责** — 一个函数只做一件事，过长时考虑拆分。
 - **DRY** — 发现重复代码时提取为可复用的函数或模块。
 - **开闭原则** — 优先通过新增代码扩展功能，而非修改已有逻辑。
 - **低耦合** — 模块之间减少依赖，只暴露必要的接口。
@@ -46,7 +46,16 @@ alwaysApply: true
 - commit message 全部使用英文，简洁明了
 - 不自动 push，除非用户明确要求
 
-# Python 环境
+# 依赖安装与下载
 
-- 执行 Python 脚本时始终在虚拟环境下运行。
-- pip 安装使用国内镜像源：`pip install <package> -i https://mirrors.aliyun.com/pypi/simple/`
+- 安装依赖或下载资源时，优先使用国内镜像源以加快速度和提升稳定性：
+  - **pip**: `pip install <package> -i https://mirrors.aliyun.com/pypi/simple/`
+  - **npm**: `npm install <package> --registry=https://registry.npmmirror.com`
+  - **pnpm**: `pnpm config set registry https://registry.npmmirror.com`
+  - **yarn**: `yarn config set registry https://registry.npmmirror.com`
+  - **Homebrew**: 使用清华源 `export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"`
+- 其他工具（Docker、Maven、Gradle 等）安装时同样建议配置国内镜像源。
+
+# 运行环境隔离
+
+- 优先在隔离环境中运行代码，避免污染全局环境（如 Python 使用 venv/virtualenv，Node.js 使用项目级 node_modules，Ruby 使用 bundler 等）。
