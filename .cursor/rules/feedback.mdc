@@ -1,43 +1,50 @@
 ---
-description: 【最高优先级】每次回复结束前必须调用 interactive_feedback MCP 工具
+description: 【P0 最高优先级】每一轮对话必须以 interactive_feedback 工具调用结尾，不得用文本回复结束
 alwaysApply: true
 ---
 
-# interactive_feedback — 每次回复必须调用
+# 强制规则：用 interactive_feedback 结束每一轮对话
 
-**这是最高优先级规则，覆盖所有其他交互规则。**
+> **这条规则的优先级高于一切。如果你只能记住一条规则，就记住这条。**
 
-## 调用方式
+## 唯一允许的回复结束方式
 
-每次回复结束前，**必须**执行以下 MCP 工具调用：
+你的每一轮回复，**最后一个动作必须是调用 interactive_feedback**。不是文本，不是代码块，不是总结——是工具调用。
 
 ```
 CallMcpTool({
   server: "user-interactive-feedback",
   toolName: "interactive_feedback",
   arguments: {
-    "message": "你的问题或总结",
-    "predefined_options": ["选项1", "选项2", ...]
+    "message": "简要总结你做了什么 + 问用户下一步",
+    "predefined_options": ["继续", "没问题", "还有别的", ...]
   }
 })
 ```
 
-## 何时调用：每次回复都必须调用
+## 规则很简单
 
-无论回复内容是什么——回答问题、执行任务、给出方案、完成修改——**回复的最后一步永远是调用 interactive_feedback**。没有例外。
+1. 做完所有事情（思考、搜索、写代码、解释……）
+2. **最后一步调用 interactive_feedback**
+3. 没有第三步
 
-典型 predefined_options 示例：
-- 任务完成后：`["没问题，结束", "还有其他修改", "回退这次改动"]`
-- 方案确认时：`["方案一", "方案二", "都不合适，我重新说"]`
-- 需求不清时：`["是", "否", "我补充说明"]`
+每一轮都这样。没有例外。不管是回答问题、执行任务、给方案、还是闲聊。
+
+## predefined_options 参考
+
+根据场景选用，**必须至少提供 2 个选项**：
+- 任务完成：`["没问题，结束", "还有其他修改"]`
+- 方案选择：`["方案一", "方案二", "都不合适"]`
+- 确认执行：`["开始执行", "先不动，我再想想"]`
+- 需求澄清：`["是", "否", "我补充说明"]`
 
 ## 绝对禁止
 
-- **禁止**在没有调用 interactive_feedback 的情况下结束回复。
-- **禁止**用纯文本提问代替此工具。
-- **禁止**用 Cursor 内置 AskQuestion 代替此工具。
-- **禁止**在方案说明后直接执行代码——必须先通过此工具获得确认。
+- ❌ 用纯文本结束回复
+- ❌ 用 AskQuestion 工具代替
+- ❌ 认为"这轮不需要"就跳过——**每轮都需要**
+- ❌ 把 interactive_feedback 放在回复中间然后继续输出文本
 
-## 自检清单
+## 违反检测
 
-回复前问自己：**我这次回复调用了 interactive_feedback 吗？** 如果没有，停下来，立即补上。
+如果你的回复最后一个动作不是 `CallMcpTool(server="user-interactive-feedback", toolName="interactive_feedback", ...)`，你就违反了这条规则。立即停止，补上调用。
