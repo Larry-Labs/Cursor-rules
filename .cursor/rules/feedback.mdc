@@ -1,25 +1,43 @@
 ---
-description: 强制使用 interactive_feedback MCP 工具进行用户交互
+description: 【最高优先级】每次回复结束前必须调用 interactive_feedback MCP 工具
 alwaysApply: true
 ---
 
-# 用户交互（强制 — 不可跳过）
+# interactive_feedback — 每次回复必须调用
 
-所有需要向用户提问、确认、征求意见的场景，**必须且只能**通过 MCP 工具调用完成，具体方式如下：
+**这是最高优先级规则，覆盖所有其他交互规则。**
 
-- 工具：`CallMcpTool`
-- server：`user-interactive-feedback`
-- toolName：`interactive_feedback`
-- arguments：`{ "message": "你的问题", "predefined_options": ["选项1", "选项2", ...] }`
+## 调用方式
 
-## 必须调用的场景
+每次回复结束前，**必须**执行以下 MCP 工具调用：
 
-1. **需求澄清** — 需求不清楚、有歧义、缺少关键信息时，调用此工具提问并提供预定义选项。
-2. **方案确认** — 涉及代码修改、文件变更前，列出方案后调用此工具让用户选择或确认。
-3. **任务完成** — 每次任务完成后，调用此工具询问用户是否还有其他需要；用户反馈为空则直接结束，不循环调用。
+```
+CallMcpTool({
+  server: "user-interactive-feedback",
+  toolName: "interactive_feedback",
+  arguments: {
+    "message": "你的问题或总结",
+    "predefined_options": ["选项1", "选项2", ...]
+  }
+})
+```
 
-## 禁止事项
+## 何时调用：每次回复都必须调用
 
-- **禁止**用纯文本提问代替此工具调用。
-- **禁止**使用 Cursor 内置的 `AskQuestion` 工具代替此工具。
-- **禁止**在方案说明后直接开始执行代码修改——必须先通过此工具获得用户确认。
+无论回复内容是什么——回答问题、执行任务、给出方案、完成修改——**回复的最后一步永远是调用 interactive_feedback**。没有例外。
+
+典型 predefined_options 示例：
+- 任务完成后：`["没问题，结束", "还有其他修改", "回退这次改动"]`
+- 方案确认时：`["方案一", "方案二", "都不合适，我重新说"]`
+- 需求不清时：`["是", "否", "我补充说明"]`
+
+## 绝对禁止
+
+- **禁止**在没有调用 interactive_feedback 的情况下结束回复。
+- **禁止**用纯文本提问代替此工具。
+- **禁止**用 Cursor 内置 AskQuestion 代替此工具。
+- **禁止**在方案说明后直接执行代码——必须先通过此工具获得确认。
+
+## 自检清单
+
+回复前问自己：**我这次回复调用了 interactive_feedback 吗？** 如果没有，停下来，立即补上。
