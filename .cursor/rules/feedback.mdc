@@ -1,59 +1,42 @@
 ---
-description: 【P0 最高优先级】每一轮对话必须以 interactive_feedback 工具调用结尾，不得用文本回复结束
+description: 【P0】每轮回复必须以 CallMcpTool 调用 interactive_feedback 结尾
 alwaysApply: true
 ---
 
-# 强制规则：用 interactive_feedback 结束每一轮对话
+# 每轮回复必须调用 interactive_feedback
 
-> **这条规则的优先级高于一切。如果你只能记住一条规则，就记住这条。**
+此规则优先级最高，无条件执行。
 
-## 唯一允许的回复结束方式
+## 做什么
 
-你的每一轮回复，**最后一个动作必须是调用 interactive_feedback**。不是文本，不是代码块，不是总结——是工具调用。
+每轮回复的**最后一个动作**，必须是这个工具调用：
 
-```
-CallMcpTool({
-  server: "user-interactive-feedback",
-  toolName: "interactive_feedback",
-  arguments: {
-    "message": "简要总结你做了什么 + 问用户下一步",
-    "predefined_options": ["继续", "没问题", "还有别的", ...]
-  }
-})
-```
+- 工具：**CallMcpTool**
+- server：**"user-interactive-feedback"**
+- toolName：**"interactive_feedback"**
+- arguments.message：总结本轮做了什么，或询问用户意图
+- arguments.predefined_options：至少 2 个选项（见下方示例）
 
-## 规则很简单
+## 什么时候调用
 
-1. 做完所有事情（思考、搜索、写代码、解释……）
-2. **最后一步调用 interactive_feedback**
-3. 没有第三步
+**每一轮。** 包括但不限于：
+- 完成了任务
+- 给出了方案等待确认
+- 回答了问题
+- 用户输入为空或不明确（此时询问用户想做什么）
 
-每一轮都这样。没有例外。不管是回答问题、执行任务、给方案、还是闲聊。
+没有"这轮不需要"的情况。
 
-## 用户回复为空或不明确时
+## predefined_options 示例
 
-如果用户的消息为空、只有空格、只有标点、或含义不明确，**不要猜测意图，不要停止对话**。你必须：
-1. 照常调用 interactive_feedback
-2. message 中礼貌询问用户想做什么
-3. predefined_options 提供常见选项，如：`["继续上一个任务", "开始新任务", "没事，结束"]`
+| 场景 | 选项 |
+|------|------|
+| 任务完成 | `["没问题", "还有修改", "回退改动"]` |
+| 方案确认 | `["方案一", "方案二", "都不行"]` |
+| 用户输入为空 | `["继续上一个任务", "开始新任务", "结束"]` |
 
-**永远不要因为用户输入为空就认为对话结束。**
+## 不允许
 
-## predefined_options 参考
-
-根据场景选用，**必须至少提供 2 个选项**：
-- 任务完成：`["没问题，结束", "还有其他修改"]`
-- 方案选择：`["方案一", "方案二", "都不合适"]`
-- 确认执行：`["开始执行", "先不动，我再想想"]`
-- 需求澄清：`["是", "否", "我补充说明"]`
-
-## 绝对禁止
-
-- ❌ 用纯文本结束回复
-- ❌ 用 AskQuestion 工具代替
-- ❌ 认为"这轮不需要"就跳过——**每轮都需要**
-- ❌ 把 interactive_feedback 放在回复中间然后继续输出文本
-
-## 违反检测
-
-如果你的回复最后一个动作不是 `CallMcpTool(server="user-interactive-feedback", toolName="interactive_feedback", ...)`，你就违反了这条规则。立即停止，补上调用。
+- 用纯文本或 AskQuestion 结束回复
+- 跳过此调用
+- 调用后继续输出文本（调用必须是最后一个动作）
