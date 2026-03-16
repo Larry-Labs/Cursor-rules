@@ -8,8 +8,10 @@
 |------|------|---------|
 | `general.mdc` | 核心原则、语言、交互、效率规范 | 始终生效 |
 | `coding.mdc` | RIPER 开发流程、编码质量、Git 提交、Python 环境 | 始终生效 |
+| `ask-question.mdc` | 每轮回复必须调用 AskQuestion 工具结尾 | 始终生效 |
 | `testing.mdc` | 测试编写规范 | 按需启用 |
 | `docs.mdc` | 文档编写规范（含配图/Mermaid） | 匹配文档文件时生效 |
+| `feedback.mdc` | ~~interactive_feedback 规则~~ | 已禁用（被 `ask-question.mdc` 替代） |
 
 ## 导入方式
 
