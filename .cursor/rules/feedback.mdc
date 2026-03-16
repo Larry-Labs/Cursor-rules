@@ -1,8 +1,6 @@
 ---
-description: 【P0】每轮回复必须以 interactive_feedback 工具调用结尾
-alwaysApply: true
+alwaysApply: false
 ---
-
 # 每轮回复必须调用 interactive_feedback
 
 此规则优先级最高，无条件执行。
