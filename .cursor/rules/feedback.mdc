@@ -1,6 +1,6 @@
 ---
-description: 【P0】每轮回复必须以 interactive_feedback 结尾
-alwaysApply: true
+description: 已废弃 — 请使用 ask-question.mdc
+alwaysApply: false
 ---
 # 每轮回复必须调用 interactive_feedback
 
