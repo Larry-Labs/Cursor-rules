@@ -1,23 +1,23 @@
 ---
-description: 【P0】每轮回复必须以 AskQuestion 工具调用结尾
+description: 【P0】每轮回复必须以 interactive_feedback MCP 工具调用结尾
 alwaysApply: true
 ---
 
-# 每轮回复必须调用 AskQuestion
+# 每轮回复必须调用 interactive_feedback
 
 此规则优先级最高，无条件执行，无任何豁免场景。
 
-> **⚠️ 最常见的违规场景：用户回复"没了"/"先这样"/"好的"等简短确认后，你直接用纯文本收尾而未调用 AskQuestion。这是错误的。无论用户说什么，你的最后一个动作必须是 AskQuestion 调用。**
+> **⚠️ 最常见的违规场景：用户回复"没了"/"先这样"/"好的"等简短确认后，你直接用纯文本收尾而未调用 interactive_feedback。这是错误的。无论用户说什么，你的最后一个动作必须是 interactive_feedback 调用。**
 
 ## 核心规则
 
-1. **每次对话结束前**必须调用 `AskQuestion` 工具
-2. **执行完任务前**必须调用 `AskQuestion` 交由用户判断是否需要结束对话
-3. **需求或指令不清楚时**，使用 `AskQuestion` 向用户提问以澄清，不做假设
+1. **每次对话结束前**必须调用 `interactive_feedback` MCP 工具
+2. **执行完任务前**必须调用 `interactive_feedback` 交由用户判断是否需要结束对话
+3. **需求或指令不清楚时**，使用 `interactive_feedback` 向用户提问以澄清，不做假设
 4. **尽可能提供预定义选项**（2~6 个，中文，简洁明了），以便快速决策
-5. **即将完成用户请求时**，调用 `AskQuestion` 请求用户反馈后再结束流程
+5. **即将完成用户请求时**，调用 `interactive_feedback` 请求用户反馈后再结束流程
 6. **只有用户明确说出"结束"**，才可以停止调用此工具，否则必须再次调用
-7. **禁止未调用 AskQuestion 就结束对话**，禁止对不明确需求直接假设执行
+7. **禁止未调用 interactive_feedback 就结束对话**，禁止对不明确需求直接假设执行
 
 ## 什么时候调用
 
@@ -33,28 +33,30 @@ alwaysApply: true
 
 ## 调用格式
 
-使用 Cursor 内置的 `AskQuestion` 工具，参数说明：
+使用 MCP 工具 `interactive_feedback`，通过 `CallMcpTool` 调用：
 
-- **questions**：问题数组，每个问题包含 `id`、`prompt`（问题文本）、`options`（选项数组）
-- **options**：每个选项包含 `id` 和 `label`，`label` 使用中文
-- **title**（可选）：问题表单标题
+- **server**：`"interactive-feedback"`
+- **toolName**：`"interactive_feedback"`
+- **arguments**：
+  - `message`（必填）：向用户展示的问题，总结本轮做了什么 + 询问下一步意图
+  - `predefined_options`（可选）：预定义选项列表，中文，便于快速选择
 
 ```
-AskQuestion(questions=[{
-  id: "next_step",
-  prompt: "总结本轮做了什么 / 询问用户意图",
-  options: [
-    {id: "opt1", label: "选项一"},
-    {id: "opt2", label: "选项二"}
-  ]
-}])
+CallMcpTool(
+  server="interactive-feedback",
+  toolName="interactive_feedback",
+  arguments={
+    message: "总结本轮做了什么 / 询问用户意图",
+    predefined_options: ["选项一", "选项二"]
+  }
+)
 ```
 
 ## 选项设计规范
 
 - **数量**：2~6 个选项，不多不少
 - **语言**：中文，简洁明了
-- **prompt**：总结本轮做了什么 + 询问下一步意图
+- **message**：总结本轮做了什么 + 询问下一步意图
 - **必须包含退出选项**：至少有一个允许用户结束对话的选项（如"结束"/"没了"）
 
 | 场景 | 选项示例 |
@@ -68,20 +70,20 @@ AskQuestion(questions=[{
 ## 边界条件与约束
 
 ### 调用时机
-- AskQuestion 必须是回复中的**最后一个工具调用**
-- 调用 AskQuestion **之后不得再输出任何文字或调用其他工具**
-- 如果一轮中有多个任务，完成所有任务后统一调用一次 AskQuestion
+- interactive_feedback 必须是回复中的**最后一个工具调用**
+- 调用 interactive_feedback **之后不得再输出任何文字或调用其他工具**
+- 如果一轮中有多个任务，完成所有任务后统一调用一次 interactive_feedback
 
 ### 工具不可用时
-- 如果 AskQuestion 调用报错（工具不可用），用纯文本提问作为 fallback，但下一轮必须恢复使用 AskQuestion
+- 如果 interactive_feedback 调用报错（工具不可用），用纯文本提问作为 fallback，但下一轮必须恢复使用 interactive_feedback
 
 ### 用户回复处理
-- 用户选择选项后，执行对应操作，然后**再次调用 AskQuestion**
+- 用户提供反馈后，执行对应操作，然后**再次调用 interactive_feedback**
 - 用户明确说"结束"→ 可以结束，不再调用
 - 用户说"没了"/"好的"/"先这样"→ **不等于"结束"**，必须再调用一次确认
 
 ### 禁止的替代方式
-- ❌ 不得用 `interactive_feedback` MCP 工具代替（该工具已禁用）
+- ❌ 不得用 `AskQuestion` 工具代替（应使用 interactive_feedback MCP）
 - ❌ 不得用纯文本提问代替
 - ❌ 不得省略调用直接结束回复
 
@@ -89,9 +91,9 @@ AskQuestion(questions=[{
 
 每轮回复即将结束时，执行以下检查：
 
-> **✅ 本轮回复的最后一个动作是 AskQuestion 调用吗？**
+> **✅ 本轮回复的最后一个动作是 interactive_feedback 调用吗？**
 > - 是 → 正常结束
-> - 否 → **立即补上 AskQuestion 调用，然后再结束**
+> - 否 → **立即补上 interactive_feedback 调用，然后再结束**
 
 这个自检没有任何豁免条件。即使你认为"这轮不需要"或"用户刚说了没了"，仍然必须调用。
 
@@ -100,28 +102,28 @@ AskQuestion(questions=[{
 ❌ 用户说"没了"后直接收尾：
 ```
 用户: "没了"
-助手: "好的，后续有问题随时找我。"  ← 错误！必须调用 AskQuestion
+助手: "好的，后续有问题随时找我。"  ← 错误！必须调用 interactive_feedback
 ```
 
 ❌ 以纯文本结束：
 ```
-已完成修改，有问题随时告诉我。  ← 错误！必须调用 AskQuestion
+已完成修改，有问题随时告诉我。  ← 错误！必须调用 interactive_feedback
 ```
 
 ❌ 调用后继续输出文字：
 ```
-AskQuestion(...)
+CallMcpTool(interactive_feedback...)
 以上就是本次修改的总结。  ← 错误！调用后不得再输出
 ```
 
 ❌ 工具报错后放弃调用：
 ```
-AskQuestion 报错了，那我就直接文字结尾吧。  ← 错误！必须重试或 fallback
+interactive_feedback 报错了，那我就直接文字结尾吧。  ← 错误！必须重试或 fallback
 ```
 
 ✅ 正确的结束方式：
 ```
 （完成所有操作和说明后）
-AskQuestion(questions=[{prompt="...", options=[...]}])
+CallMcpTool(server="interactive-feedback", toolName="interactive_feedback", arguments={message: "...", predefined_options: [...]})
 ← 回复结束，不再输出任何内容
 ```
